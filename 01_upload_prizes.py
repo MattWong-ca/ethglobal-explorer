@@ -11,7 +11,7 @@ imageUrls = {
     'https://ethglobal.b-cdn.net/organizations/0ndp2/square-logo/default.png': 'Hyperlane',
     'https://ethglobal.b-cdn.net/organizations/0p5er/square-logo/default.png': 'Neon EVM',
     'https://ethglobal.b-cdn.net/organizations/0q1p4/square-logo/default.png': 'Fleek',
-    'https://ethglobal.b-cdn.net/organizations/0tx58/square-logo/default.png': '???',
+    'https://ethglobal.b-cdn.net/organizations/0tx58/square-logo/default.png': '???', # Most likely Reflexer Labs, shoud've been trophy
     'https://ethglobal.b-cdn.net/organizations/0vx1d/square-logo/default.png': 'Mode Network',
     'https://ethglobal.b-cdn.net/organizations/0w2pp/square-logo/default.png': 'Aave',
     'https://ethglobal.b-cdn.net/organizations/10a1v/square-logo/default.png': 'Push Protocol',
@@ -20,11 +20,11 @@ imageUrls = {
     'https://ethglobal.b-cdn.net/organizations/1ijf8/square-logo/default.png': 'Oasis Protocol',
     'https://ethglobal.b-cdn.net/organizations/1kchc/square-logo/default.png': 'Airdao',
     'https://ethglobal.b-cdn.net/organizations/1nz66/square-logo/default.png': 'Li.Fi',
-    'https://ethglobal.b-cdn.net/organizations/1pyem/square-logo/default.png': '???',
-    'https://ethglobal.b-cdn.net/organizations/24ige/square-logo/default.png': '???',
+    'https://ethglobal.b-cdn.net/organizations/1pyem/square-logo/default.png': '???', # Most likely Flux, should've been trophy
+    'https://ethglobal.b-cdn.net/organizations/24ige/square-logo/default.png': '???', # No project has this
     'https://ethglobal.b-cdn.net/organizations/26gjy/square-logo/default.png': 'Cronos',
     'https://ethglobal.b-cdn.net/organizations/2guk4/square-logo/default.png': 'DIMO',
-    'https://ethglobal.b-cdn.net/organizations/2gzxu/square-logo/default.png': '???',
+    'https://ethglobal.b-cdn.net/organizations/2gzxu/square-logo/default.png': '???', # Most likely Gnosis Safe, should've been trophy
     'https://ethglobal.b-cdn.net/organizations/2ixf3/square-logo/default.png': '???',
     'https://ethglobal.b-cdn.net/organizations/2mig9/square-logo/default.png': 'Quantstamp',
     'https://ethglobal.b-cdn.net/organizations/2t2i9/square-logo/default.png': 'Farcaster',
