@@ -164,18 +164,18 @@ export default function Home() {
 
   return (
     <div className="container mx-auto p-4">
-      <div className="mb-4 flex gap-4">
+      <div className="mb-4 flex flex-col md:flex-row gap-4">
         <input
           type="text"
           placeholder="Search projects..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="px-4 py-2 border rounded-md"
+          className="px-4 py-2 border rounded-md w-full"
         />
         <select
           value={selectedEvent}
           onChange={(e) => setSelectedEvent(e.target.value)}
-          className="px-4 py-2 border rounded-md"
+          className="px-4 py-2 border rounded-md w-full"
         >
           <option value="">All Events</option>
           {events.map((event, index) => (
@@ -185,7 +185,7 @@ export default function Home() {
         <select
           value={selectedPrize}
           onChange={(e) => setSelectedPrize(e.target.value)}
-          className="px-4 py-2 border rounded-md"
+          className="px-4 py-2 border rounded-md w-full"
         >
           <option value="">All Prizes</option>
           {prizeNames.map((prizeName, index) => (
