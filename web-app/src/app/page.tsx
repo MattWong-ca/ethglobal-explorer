@@ -14,6 +14,9 @@ interface Prize {
   name: string;
   img_url: string;
 }
+
+const events = ['ETHGlobal Bangkok', 'ETHGlobal San Francisco', 'ETHGlobal Singapore', 'ETHOnline 2024', 'Superhack 2024', 'Scaling Ethereum 2024', 'ETHGlobal Sydney', 'ETHGlobal Brussels', 'StarkHack', 'HackFS 2024', 'Frameworks', 'ETHGlobal London', 'LFGHO', 'Circuit Breaker', 'ETHIndia 2023', 'ETHOnline 2023', 'ETHGlobal Istanbul', 'HackFS 2023', 'Scaling Ethereum 2023', 'ETHGlobal New York', 'Superhack', 'ETHGlobal Paris', 'Autonomous Worlds', 'ETHGlobal Lisbon', 'ETHGlobal Waterloo', 'ETHIndia 2022', 'ETHGlobal Tokyo', 'FVM Space Warp', 'Hack FEVM', 'ETHSanFrancisco 2022', 'ETHBogotá', 'ETHOnline 2022', 'ETHMexico', 'Metabolism', 'HackFS 2022', 'ETHNewYork 2022', 'ETHAmsterdam', 'DAOHacks', 'LFGrow', 'BuildQuest', 'Road to Web3', 'NFTHack 2022', 'Web3Jam', 'UniCode', 'ETHOnline 2021', 'HackFS 2021', 'HackMoney 2021', 'Web3 Weekend', 'Scaling Ethereum', 'MarketMake', 'NFTHack', 'ETHOnline', 'HackFS', 'HackMoney']
+
 export default function Home() {
   const [data, setData] = useState<Project[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -22,6 +25,7 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEvent, setSelectedEvent] = useState('');
   const [selectedPrize, setSelectedPrize] = useState('');
+  const [prizeNames, setPrizeNames] = useState<string[]>([]);
   const itemsPerPage = 100;
 
   const supabase = createClient(
@@ -110,6 +114,28 @@ export default function Home() {
     fetchPageData(currentPage);
   }, [currentPage]);
 
+  useEffect(() => {
+    const fetchPrizeNames = async () => {
+      const { data, error } = await supabase
+        .from('prizes')
+        .select('name')
+        .order('name');
+      
+      if (error) {
+        console.error('Error fetching prize names:', error);
+        return;
+      }
+      
+      const names = data
+        .map(prize => prize.name)
+        .filter(name => name !== '???');
+      
+      setPrizeNames(names);
+    };
+
+    fetchPrizeNames();
+  }, []);
+
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   return (
@@ -128,17 +154,19 @@ export default function Home() {
           className="px-4 py-2 border rounded-md"
         >
           <option value="">All Events</option>
-          <option value="Frameworks">Frameworks</option>
-          <option value="ETHGlobal Bangkok">ETHGlobal Bangkok</option>
+          {events.map((event, index) => (
+            <option key={index} value={event}>{event}</option>
+          ))}
         </select>
         <select
           value={selectedPrize}
           onChange={(e) => setSelectedPrize(e.target.value)}
           className="px-4 py-2 border rounded-md"
         >
-          <option value="Finalist">Finalist</option>
-          <option value="Filecoin">Filecoin</option>
           <option value="">All Prizes</option>
+          {prizeNames.map((prizeName, index) => (
+            <option key={index} value={prizeName}>{prizeName}</option>
+          ))}
         </select>
       </div>
 
