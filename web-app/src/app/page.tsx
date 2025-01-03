@@ -18,6 +18,29 @@ interface Prize {
 
 const events = ['ETHGlobal Bangkok', 'ETHGlobal San Francisco', 'ETHGlobal Singapore', 'ETHOnline 2024', 'Superhack 2024', 'Scaling Ethereum 2024', 'ETHGlobal Sydney', 'ETHGlobal Brussels', 'StarkHack', 'HackFS 2024', 'Frameworks', 'ETHGlobal London', 'LFGHO', 'Circuit Breaker', 'ETHIndia 2023', 'ETHOnline 2023', 'ETHGlobal Istanbul', 'HackFS 2023', 'Scaling Ethereum 2023', 'ETHGlobal New York', 'Superhack', 'ETHGlobal Paris', 'Autonomous Worlds', 'ETHGlobal Lisbon', 'ETHGlobal Waterloo', 'ETHIndia 2022', 'ETHGlobal Tokyo', 'FVM Space Warp', 'Hack FEVM', 'ETHSanFrancisco 2022', 'ETHBogotá', 'ETHOnline 2022', 'ETHMexico', 'Metabolism', 'HackFS 2022', 'ETHNewYork 2022', 'ETHAmsterdam', 'DAOHacks', 'LFGrow', 'BuildQuest', 'Road to Web3', 'NFTHack 2022', 'Web3Jam', 'UniCode', 'ETHOnline 2021', 'HackFS 2021', 'HackMoney 2021', 'Web3 Weekend', 'Scaling Ethereum', 'MarketMake', 'NFTHack', 'ETHOnline', 'HackFS', 'HackMoney']
 
+const eventDisplayNames: { [key: string]: string } = {
+  'ETHGlobal Bangkok': 'Bangkok \'24',
+  'ETHGlobal San Francisco': 'SF \'24',
+  'ETHGlobal Singapore': 'Singapore \'24',
+  'ETHOnline 2024': 'ETHOnline \'24',
+  'Superhack 2024': 'Superhack \'24',
+  'ETHGlobal Brussels': 'Brussels \'24',
+  'ETHGlobal Sydney': 'Sydney \'24',
+  'Scaling Ethereum 2024': 'Scaling Ethereum \'24',
+  'ETHGlobal London': 'London \'24',
+  'ETHIndia 2023': 'India \'23',
+  'ETHGlobal Istanbul': 'Istanbul \'23',
+  'ETHOnline 2023': 'ETHOnline \'23',
+  'ETHGlobal New York': 'NYC \'23',
+  'Superhack': 'Superhack \'23',
+  'ETHGlobal Paris': 'Paris \'23',
+  'ETHGlobal Waterloo': 'Waterloo \'23',
+  'ETHGlobal Lisbon': 'Lisbon \'23',
+  'ETHGlobal Tokyo': 'Tokyo \'23',
+  'Scaling Ethereum 2023': 'Scaling Ethereum \'23',
+  'ETHSanFrancisco 2022': 'SF \'22',
+};
+
 export default function Home() {
   const [data, setData] = useState<Project[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -201,7 +224,9 @@ export default function Home() {
                     <div className="text-sm text-gray-900 truncate">{project.description}</div>
                   </td>
                   <td className="min-w-[100px]">
-                    <div className="text-sm text-gray-900">{project.event == "ETHGlobal Bangkok" ? "Bangkok '24" : project.event}</div>
+                    <div className="text-sm text-gray-900">
+                      {eventDisplayNames[project.event] || project.event}
+                    </div>
                   </td>
                   <td className="py-1">
                     <div className="flex flex-wrap gap-2">
