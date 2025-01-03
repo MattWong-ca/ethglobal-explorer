@@ -93,8 +93,8 @@ export default function Home() {
           .from('project_prizes')
           .select('project_id, prize:prize_id!inner(name)')
           .eq('prize.name', selectedPrize);
-        console.log('projectIds', projectIds);
-        if (projectIds) {
+
+          if (projectIds) {
           const ids = projectIds.map(p => p.project_id);
           query = query.in('id', ids);
           countQuery = countQuery.in('id', ids);
@@ -109,7 +109,6 @@ export default function Home() {
       const startRange = (page - 1) * itemsPerPage;
       const endRange = startRange + itemsPerPage - 1;
       const { data: fetchedData, error } = await query.range(startRange, endRange);
-      console.log('fetchedData', fetchedData);
       if (error) throw error;
 
       const transformedData = fetchedData.map(project => ({
