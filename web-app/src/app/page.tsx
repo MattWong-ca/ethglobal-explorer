@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from '@supabase/supabase-js'
 interface Project {
+  id: number;
   title: string;
   project_prizes: Prize[];
   description: string;
@@ -34,12 +35,12 @@ export default function Home() {
       let query = supabase
         .from('projects')
         .select(`
+          id,
           title,
           description,
           url,
           event,
           project_prizes(
-            *,
             prizes(name, img_url)
           )
         `);
@@ -59,8 +60,17 @@ export default function Home() {
       }
 
       if (selectedPrize) {
-        query = query.contains('project_prizes', [{ 'prizes': { name: selectedPrize } }]);
-        countQuery = countQuery.contains('project_prizes', [{ 'prizes': { name: selectedPrize } }]);
+        // First get the projects IDs that have the selected prize
+        const { data: projectIds } = await supabase
+          .from('project_prizes')
+          .select('project_id, prize:prize_id!inner(name)')
+          .eq('prize.name', selectedPrize);
+        console.log('projectIds', projectIds);
+        if (projectIds) {
+          const ids = projectIds.map(p => p.project_id);
+          query = query.in('id', ids);
+          countQuery = countQuery.in('id', ids);
+        }
       }
 
       const { count, error: countError } = await countQuery;
@@ -71,12 +81,12 @@ export default function Home() {
       const startRange = (page - 1) * itemsPerPage;
       const endRange = startRange + itemsPerPage - 1;
       const { data: fetchedData, error } = await query.range(startRange, endRange);
-
+      console.log('fetchedData', fetchedData);
       if (error) throw error;
 
       const transformedData = fetchedData.map(project => ({
         ...project,
-        project_prizes: project.project_prizes.map(pp => pp.prizes)
+        project_prizes: project.project_prizes.map(pp => pp.prizes).flat()
       }));
 
       setData(transformedData);
@@ -119,12 +129,15 @@ export default function Home() {
         >
           <option value="">All Events</option>
           <option value="Frameworks">Frameworks</option>
+          <option value="ETHGlobal Bangkok">ETHGlobal Bangkok</option>
         </select>
         <select
           value={selectedPrize}
           onChange={(e) => setSelectedPrize(e.target.value)}
           className="px-4 py-2 border rounded-md"
         >
+          <option value="Finalist">Finalist</option>
+          <option value="Filecoin">Filecoin</option>
           <option value="">All Prizes</option>
         </select>
       </div>
@@ -163,7 +176,7 @@ export default function Home() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-2">
-                      {project.project_prizes.map((prize: any, index: number) => (
+                      {project.project_prizes.map((prize: Prize, index: number) => (
                         <span 
                           key={index}
                           className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
