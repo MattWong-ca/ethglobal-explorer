@@ -236,7 +236,7 @@ export default function Home() {
                           src={prize.img_url}
                           alt={prize.name}
                           title={prize.name}
-                          className="h-6 w-6 object-contain rounded-full"
+                          className={`h-6 w-6 object-contain ${prize.img_url == 'https://ethglobal.b-cdn.net/organizations/xdat5/square-logo/default.png' ? '' : 'rounded-full'}`}
                           width={24}
                           height={24}
                         />
