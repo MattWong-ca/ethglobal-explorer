@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from "react";
 import { createClient } from '@supabase/supabase-js'
+import Image from "next/image";
 interface Project {
   id: number;
   title: string;
@@ -175,42 +176,45 @@ export default function Home() {
           <div className="text-center py-4">Loading...</div>
         ) : (
           <table className="min-w-full table-auto">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prizes</th>
+            <thead className="bg-purple-100">
+              <tr className="text-sm text-black font-large uppercase">
+                <th className="px-2 py-1 text-left tracking-wider">Name</th>
+                <th className="px-2 py-1 text-left tracking-wider">Description</th>
+                <th className="py-1 text-left tracking-wider">Event</th>
+                <th className="py-1 text-left tracking-wider">Prizes</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {data.map((project) => (
                 <tr key={project.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-2 py-1 max-w-[130px]">
                     <a 
                       href={project.url} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 hover:underline"
+                      className="text-sm text-blue-600 hover:text-blue-800 hover:underline truncate block"
                     >
                       {project.title}
                     </a>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900 line-clamp-2">{project.description}</div>
+                  <td className="px-2 py-1 min-w-[400px] max-w-[800px]">
+                    <div className="text-sm text-gray-900 truncate">{project.description}</div>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900">{project.event}</div>
+                  <td className="min-w-[100px]">
+                    <div className="text-sm text-gray-900">{project.event == "ETHGlobal Bangkok" ? "Bangkok '24" : project.event}</div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="py-1">
                     <div className="flex flex-wrap gap-2">
                       {project.project_prizes.map((prize: Prize, index: number) => (
-                        <span 
+                        <Image 
                           key={index}
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                        >
-                          {prize.name}
-                        </span>
+                          src={prize.img_url}
+                          alt={prize.name}
+                          title={prize.name}
+                          className="h-6 w-6 object-contain rounded-full"
+                          width={24}
+                          height={24}
+                        />
                       ))}
                     </div>
                   </td>
