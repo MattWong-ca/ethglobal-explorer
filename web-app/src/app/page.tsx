@@ -174,7 +174,7 @@ export default function Home() {
         <select
           value={selectedEvent}
           onChange={(e) => setSelectedEvent(e.target.value)}
-          className="px-4 py-2 border rounded-md w-full md:w-48"
+          className="px-4 py-2 border rounded-md w-full md:w-48 text-black"
         >
           <option value="">All Events</option>
           {events.map((event, index) => (
@@ -184,7 +184,7 @@ export default function Home() {
         <select
           value={selectedPrize}
           onChange={(e) => setSelectedPrize(e.target.value)}
-          className="px-4 py-2 border rounded-md w-full md:w-48"
+          className="px-4 py-2 border rounded-md w-full md:w-48 text-black"
         >
           <option value="">All Prizes</option>
           {prizeNames.map((prizeName, index) => (
