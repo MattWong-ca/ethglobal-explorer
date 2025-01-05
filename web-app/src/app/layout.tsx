@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ETHGlobal Explorer",
   description: "Explore Finalists and bounty winners of ETHGlobal hackathons",
+  verification: {
+    google: 'lhi3CvuXkAG8OpMJGFDygJsBog5gEjm7ugLSsLAtmDM',
+  },
 };
 
 export default function RootLayout({
