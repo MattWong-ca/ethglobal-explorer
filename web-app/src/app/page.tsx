@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useState } from "react";
-import { createClient } from '@supabase/supabase-js'
 import Image from "next/image";
+import { allEvents, allPrizes, eventDisplayNames } from '@/lib/constants';
+
 interface Project {
   id: number;
   title: string;
@@ -16,107 +17,31 @@ interface Prize {
   img_url: string;
 }
 
-const events = ['ETHGlobal Bangkok', 'ETHGlobal San Francisco', 'ETHGlobal Singapore', 'ETHOnline 2024', 'Superhack 2024', 'Scaling Ethereum 2024', 'ETHGlobal Sydney', 'ETHGlobal Brussels', 'StarkHack', 'HackFS 2024', 'Frameworks', 'ETHGlobal London', 'LFGHO', 'Circuit Breaker', 'ETHIndia 2023', 'ETHOnline 2023', 'ETHGlobal Istanbul', 'HackFS 2023', 'Scaling Ethereum 2023', 'ETHGlobal New York', 'Superhack', 'ETHGlobal Paris', 'Autonomous Worlds', 'ETHGlobal Lisbon', 'ETHGlobal Waterloo', 'ETHIndia 2022', 'ETHGlobal Tokyo', 'FVM Space Warp', 'Hack FEVM', 'ETHSanFrancisco 2022', 'ETHBogotá', 'ETHOnline 2022', 'ETHMexico', 'Metabolism', 'HackFS 2022', 'ETHNewYork 2022', 'ETHAmsterdam', 'DAOHacks', 'LFGrow', 'BuildQuest', 'Road to Web3', 'NFTHack 2022', 'Web3Jam', 'UniCode', 'ETHOnline 2021', 'HackFS 2021', 'HackMoney 2021', 'Web3 Weekend', 'Scaling Ethereum', 'MarketMake', 'NFTHack', 'ETHOnline', 'HackFS', 'HackMoney']
-
-const eventDisplayNames: { [key: string]: string } = {
-  'ETHGlobal Bangkok': 'Bangkok \'24',
-  'ETHGlobal San Francisco': 'SF \'24',
-  'ETHGlobal Singapore': 'Singapore \'24',
-  'ETHOnline 2024': 'ETHOnline \'24',
-  'Superhack 2024': 'Superhack \'24',
-  'ETHGlobal Brussels': 'Brussels \'24',
-  'ETHGlobal Sydney': 'Sydney \'24',
-  'Scaling Ethereum 2024': 'Scaling Ethereum \'24',
-  'ETHGlobal London': 'London \'24',
-  'ETHIndia 2023': 'India \'23',
-  'ETHGlobal Istanbul': 'Istanbul \'23',
-  'ETHOnline 2023': 'ETHOnline \'23',
-  'ETHGlobal New York': 'NYC \'23',
-  'Superhack': 'Superhack \'23',
-  'ETHGlobal Paris': 'Paris \'23',
-  'ETHGlobal Waterloo': 'Waterloo \'23',
-  'ETHGlobal Lisbon': 'Lisbon \'23',
-  'ETHGlobal Tokyo': 'Tokyo \'23',
-  'Scaling Ethereum 2023': 'Scaling Ethereum \'23',
-  'ETHSanFrancisco 2022': 'SF \'22',
-};
-
 export default function Home() {
   const [data, setData] = useState<Project[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEvent, setSelectedEvent] = useState('');
   const [selectedPrize, setSelectedPrize] = useState('');
-  const [prizeNames, setPrizeNames] = useState<string[]>([]);
   const itemsPerPage = 100;
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
 
   const fetchPageData = async (page: number) => {
     setIsLoading(true);
     try {
-      let query = supabase
-        .from('projects')
-        .select(`
-          id,
-          title,
-          description,
-          url,
-          event,
-          project_prizes(
-            prizes(name, img_url)
-          )
-        `);
+      const params = new URLSearchParams({
+        page: page.toString(),
+        searchTerm: searchTerm,
+        event: selectedEvent,
+        prize: selectedPrize
+      });
 
-      let countQuery = supabase
-        .from('projects')
-        .select('*', { count: 'exact', head: true });
-
-      if (searchTerm) {
-        query = query.or(`title.ilike.%${searchTerm}%`);
-        countQuery = countQuery.or(`title.ilike.%${searchTerm}%`);
-      }
-
-      if (selectedEvent) {
-        query = query.eq('event', selectedEvent);
-        countQuery = countQuery.eq('event', selectedEvent);
-      }
-
-      if (selectedPrize) {
-        // First get the projects IDs that have the selected prize
-        const { data: projectIds } = await supabase
-          .from('project_prizes')
-          .select('project_id, prize:prize_id!inner(name)')
-          .eq('prize.name', selectedPrize);
-
-          if (projectIds) {
-          const ids = projectIds.map(p => p.project_id);
-          query = query.in('id', ids);
-          countQuery = countQuery.in('id', ids);
-        }
-      }
-
-      const { count, error: countError } = await countQuery;
+      const response = await fetch(`/api/projects?${params}`);
+      const { data: fetchedData, totalCount } = await response.json();
       
-      if (countError) throw countError;
-      setTotalCount(count || 0);
-
-      const startRange = (page - 1) * itemsPerPage;
-      const endRange = startRange + itemsPerPage - 1;
-      const { data: fetchedData, error } = await query.range(startRange, endRange);
-      if (error) throw error;
-
-      const transformedData = fetchedData.map(project => ({
-        ...project,
-        project_prizes: project.project_prizes.map(pp => pp.prizes).flat()
-      }));
-
-      setData(transformedData);
+      setData(fetchedData);
+      setTotalCount(totalCount);
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -137,28 +62,6 @@ export default function Home() {
     fetchPageData(currentPage);
   }, [currentPage]);
 
-  useEffect(() => {
-    const fetchPrizeNames = async () => {
-      const { data, error } = await supabase
-        .from('prizes')
-        .select('name')
-        .order('name');
-      
-      if (error) {
-        console.error('Error fetching prize names:', error);
-        return;
-      }
-      
-      const names = data
-        .map(prize => prize.name)
-        .filter(name => name !== '???');
-      
-      setPrizeNames(names);
-    };
-
-    fetchPrizeNames();
-  }, []);
-
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   return (
@@ -177,7 +80,7 @@ export default function Home() {
           className="px-4 py-2 border rounded-md w-full md:w-48 text-black"
         >
           <option value="">All Events</option>
-          {events.map((event, index) => (
+          {allEvents.map((event, index) => (
             <option key={index} value={event}>{event}</option>
           ))}
         </select>
@@ -187,7 +90,7 @@ export default function Home() {
           className="px-4 py-2 border rounded-md w-full md:w-48 text-black"
         >
           <option value="">All Prizes</option>
-          {prizeNames.map((prizeName, index) => (
+          {allPrizes.map((prizeName, index) => (
             <option key={index} value={prizeName}>{prizeName}</option>
           ))}
         </select>
