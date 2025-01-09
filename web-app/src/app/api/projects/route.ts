@@ -56,7 +56,7 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
-    const searchTerm = searchParams.get('searchTerm') || '';
+    const searchTerm = searchParams.get('q') || '';
     const selectedEvent = searchParams.get('event') || '';
     const selectedPrize = searchParams.get('prize') || '';
     const selectedTag = searchParams.get('tag') || '';

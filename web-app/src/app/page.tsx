@@ -18,22 +18,26 @@ interface Prize {
 }
 
 export default function Home() {
+  const initialParams = typeof window !== 'undefined' 
+    ? new URLSearchParams(window.location.search)
+    : new URLSearchParams();
+
   const [data, setData] = useState<Project[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedEvent, setSelectedEvent] = useState('');
-  const [selectedPrize, setSelectedPrize] = useState('');
-  const [selectedTag, setSelectedTag] = useState('');
+  const [searchTerm, setSearchTerm] = useState(initialParams.get('q') || '');
+  const [selectedEvent, setSelectedEvent] = useState(initialParams.get('event') || '');
+  const [selectedPrize, setSelectedPrize] = useState(initialParams.get('prize') || '');
+  const [selectedTag, setSelectedTag] = useState(initialParams.get('tag') || '');
   const itemsPerPage = 100;
-
+  
   const fetchPageData = async (page: number) => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
         page: page.toString(),
-        searchTerm: searchTerm,
+        q: searchTerm,
         event: selectedEvent,
         prize: selectedPrize,
         tag: selectedTag
@@ -55,6 +59,15 @@ export default function Home() {
     const timer = setTimeout(() => {
       setCurrentPage(1);
       fetchPageData(1);
+      
+      const params = new URLSearchParams();
+      if (searchTerm) params.set('q', searchTerm);
+      if (selectedEvent) params.set('event', selectedEvent);
+      if (selectedPrize) params.set('prize', selectedPrize);
+      if (selectedTag) params.set('tag', selectedTag);
+      
+      const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+      window.history.pushState({}, '', newUrl);
     }, 300);
 
     return () => clearTimeout(timer);
@@ -63,6 +76,20 @@ export default function Home() {
   useEffect(() => {
     fetchPageData(currentPage);
   }, [currentPage]);
+
+  
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      setSearchTerm(params.get('q') || '');
+      setSelectedEvent(params.get('event') || '');
+      setSelectedPrize(params.get('prize') || '');
+      setSelectedTag(params.get('tag') || '');
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
