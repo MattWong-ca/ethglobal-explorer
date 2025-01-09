@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'ethglobal.b-cdn.net',
       },
+      {
+        protocol: 'https',
+        hostname: 'ethglobal.com',
+      },
     ],
   },
 };
