@@ -59,6 +59,7 @@ export async function GET(request: Request) {
     const searchTerm = searchParams.get('searchTerm') || '';
     const selectedEvent = searchParams.get('event') || '';
     const selectedPrize = searchParams.get('prize') || '';
+    const selectedTag = searchParams.get('tag') || '';
     const itemsPerPage = 100;
 
     try {
@@ -96,6 +97,14 @@ export async function GET(request: Request) {
                 query = query.in('id', ids);
                 countQuery = countQuery.in('id', ids);
             }
+        }
+        if (selectedTag) {
+            query = query.or(`description.ilike.%${selectedTag}%`);
+            countQuery = countQuery.or(`description.ilike.%${selectedTag}%`);
+            // const tagTerms = selectedTags.split(',').map(tag => tag.trim());
+            // const tagFilters = tagTerms.map(tag => `description.ilike.%${tag}%`);
+            // query = query.or(tagFilters.join(','));
+            // countQuery = countQuery.or(tagFilters.join(','));
         }
 
         const [{ count }, { data: fetchedData }] = await Promise.all([

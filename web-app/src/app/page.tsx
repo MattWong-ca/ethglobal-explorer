@@ -25,6 +25,7 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEvent, setSelectedEvent] = useState('');
   const [selectedPrize, setSelectedPrize] = useState('');
+  const [selectedTag, setSelectedTag] = useState('');
   const itemsPerPage = 100;
 
   const fetchPageData = async (page: number) => {
@@ -34,7 +35,8 @@ export default function Home() {
         page: page.toString(),
         searchTerm: searchTerm,
         event: selectedEvent,
-        prize: selectedPrize
+        prize: selectedPrize,
+        tag: selectedTag
       });
 
       const response = await fetch(`/api/projects?${params}`);
@@ -56,7 +58,7 @@ export default function Home() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, selectedEvent, selectedPrize]);
+  }, [searchTerm, selectedEvent, selectedPrize, selectedTag]);
 
   useEffect(() => {
     fetchPageData(currentPage);
@@ -93,6 +95,23 @@ export default function Home() {
           {allPrizes.map((prizeName, index) => (
             <option key={index} value={prizeName}>{prizeName}</option>
           ))}
+        </select>
+        {/* 
+          Current Tag filter only does a single keyword search on the description,
+          so it's not completely reflective of all projects related to the tag. 
+          Ideally it searches for multiple keywords (eg. "stables", "stablecoin").
+          In the future, vector search should be implemented.
+        */}
+        <select
+          value={selectedTag}
+          onChange={(e) => setSelectedTag(e.target.value)}
+          className="px-4 py-2 border rounded-md w-full md:w-48 text-black"
+        >
+          <option value="">All Tags</option>
+          <option value="AI Agent">AI Agents</option>
+          <option value="Stablecoin">Stablecoins</option>
+          <option value="NFT">NFTs</option>
+          <option value="DAO">DAOs</option>
         </select>
       </div>
 
