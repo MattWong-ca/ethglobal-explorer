@@ -19,6 +19,10 @@ export const metadata: Metadata = {
   verification: {
     google: 'lhi3CvuXkAG8OpMJGFDygJsBog5gEjm7ugLSsLAtmDM',
   },
+  metadataBase: new URL('https://www.ethglobalexplorer.com'),
+  alternates: {
+    canonical: '/',
+  },
 };
 
 export default function RootLayout({
