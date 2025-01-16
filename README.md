@@ -2,6 +2,7 @@
 
 Demo: https://x.com/mattwong_ca/status/1875358547569197460
 
+<img width="1552" alt="ETHGlobalExplorer com" src="https://github.com/user-attachments/assets/a29d841a-40b0-4cdf-90a1-5b4cf35f973f" />
 
 ### Scripts
 
