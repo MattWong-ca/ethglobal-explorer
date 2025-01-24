@@ -16,5 +16,6 @@ Next steps: make updating the db easier - ideally whenever there's a new hackath
 
 ### Notes on Data Quality
 - ETHGlobal's showcase page only has data from HackMoney (2020) and onwards (No ETHNYC either). Previous hackathons were likely hosted on platforms like Devpost (eg. [ETHWaterloo 2017](https://ethwaterloo.devpost.com/))
-- Prize data (eg. prize logos on project cards) is only available from HackFS 2021 and onwards. 
+- Prize data (eg. prize logos on project cards) is only available from HackFS 2021 and onwards.
+- Hackathon slugs with working links start at `/spacewarp` (also `/hackfs2022`), previous hackathons use a different URL or are broken
 - On ethglobalexplorer.com, some sponsor logos have broken links / generic trophy logos - this means ETHGlobal represents them as generic trophy logos (I'll likely manually go through it and fix it in the future)
