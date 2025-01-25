@@ -11,16 +11,54 @@ def scrape_hackathons():
     # Configure Chrome options for faster loading
     options = webdriver.ChromeOptions()
     options.add_argument('--disable-images')
-    options.add_argument('--disable-javascript')
     options.add_argument('--headless')
     driver = webdriver.Chrome(options=options)
     
-    driver.implicitly_wait(2)
-
     driver.get(f"https://ethglobal.com/events/hackathons")
+    
+    # Wait for the specific div to be present
+    try:
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.CLASS_NAME, "divide-y-2"))
+        )
+    except:
+        print("Timeout waiting for content to load")
+        driver.quit()
+        return
+        
     soup = BeautifulSoup(driver.page_source, 'html.parser')
-    spans = soup.find_all('a')
-    print(spans)
+    # Find the specific div first
+    target_div = soup.find('div', class_="divide-y-2 border-t-2 border-b-2 border-black")
+    if target_div:
+        for link in target_div.find_all('a'):
+            h3 = link.find('h3')
+            print(f"URL: {link['href']}")
+            print(f"Title: {h3.text.strip() if h3 else 'No title found'}")
+            
+            # Find and print image src
+            img = link.find('img')
+            if img and img.get('src'):
+                print(f"Image: {img['src']}")
+            else:
+                print("No image found")
+            
+            # Find and print the status div
+            status_div = link.find('div', class_="inline-flex overflow font-semibold items-center space-x-2 uppercase py-1 bg-green-300 text-xs border-black px-3 border-2 rounded-sm")
+            if status_div:
+                print(f"Type: {status_div.text.strip()}")
+            else:
+                print("No status found")
+            
+            # Find and print all time tags
+            time_tags = link.find_all('time')
+            if time_tags:
+                for i, time in enumerate(time_tags, 1):
+                    print(f"Time {i}: {time.text.strip()}")
+            else:
+                print("No time tags found")
+            print("---")
+    else:
+        print("Target div not found")
     # for page in range(1, total_pages + 1):
     #     print(f"\n=== Processing page {page}/{total_pages} ===")
     #     driver.get(f"https://ethglobal.com/events/hackathons")
