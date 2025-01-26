@@ -44,6 +44,8 @@ def scrape_hackathons():
             
             # Find and print the status div
             status_div = link.find('div', class_="inline-flex overflow font-semibold items-center space-x-2 uppercase py-1 bg-green-300 text-xs border-black px-3 border-2 rounded-sm")
+            if not status_div:
+                status_div = link.find('div', class_="inline-flex overflow font-semibold items-center space-x-2 uppercase py-1 bg-purple-300 text-xs border-black px-3 border-2 rounded-sm")
             if status_div:
                 print(f"Type: {status_div.text.strip()}")
             else:
