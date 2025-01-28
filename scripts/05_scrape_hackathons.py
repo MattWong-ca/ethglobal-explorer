@@ -85,12 +85,6 @@ def scrape_hackathons():
         print("Target div not found")
     
     driver.quit()
-    
-    # Save to JSON file
-    # with open('ethglobal_projects.json', 'w', encoding='utf-8') as f:
-    #     json.dump({'projects': projects}, f, indent=2, ensure_ascii=False)
-    
-    # print(f"\nScraping complete! Saved {len(projects)} projects to ethglobal_projects.json")
 
 if __name__ == "__main__":
     scrape_hackathons()
