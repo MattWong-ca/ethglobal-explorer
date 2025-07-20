@@ -1,4 +1,4 @@
-export const allEvents = ['ETHGlobal Bangkok', 'ETHGlobal San Francisco', 'ETHGlobal Singapore', 'ETHOnline 2024', 'Superhack 2024', 'Scaling Ethereum 2024', 'ETHGlobal Sydney', 'ETHGlobal Brussels', 'StarkHack', 'HackFS 2024', 'Frameworks', 'ETHGlobal London', 'LFGHO', 'Circuit Breaker', 'ETHIndia 2023', 'ETHOnline 2023', 'ETHGlobal Istanbul', 'HackFS 2023', 'Scaling Ethereum 2023', 'ETHGlobal New York', 'Superhack', 'ETHGlobal Paris', 'Autonomous Worlds', 'ETHGlobal Lisbon', 'ETHGlobal Waterloo', 'ETHIndia 2022', 'ETHGlobal Tokyo', 'FVM Space Warp', 'Hack FEVM', 'ETHSanFrancisco 2022', 'ETHBogotá', 'ETHOnline 2022', 'ETHMexico', 'Metabolism', 'HackFS 2022', 'ETHNewYork 2022', 'ETHAmsterdam', 'DAOHacks', 'LFGrow', 'BuildQuest', 'Road to Web3', 'NFTHack 2022', 'Web3Jam', 'UniCode', 'ETHOnline 2021', 'HackFS 2021', 'HackMoney 2021', 'Web3 Weekend', 'Scaling Ethereum', 'MarketMake', 'NFTHack', 'ETHOnline', 'HackFS', 'HackMoney']
+export const allEvents = ['ETHGlobal Prague', 'ETHGlobal Taipei', 'ETHGlobal Trifecta - Trusted Execution Environments', 'ETHGlobal Trifecta - Zero Knowledge', 'ETHGlobal Trifecta - Agents', 'Agentic Ethereum', 'ETHGlobal Bangkok', 'ETHGlobal San Francisco', 'ETHGlobal Singapore', 'ETHOnline 2024', 'Superhack 2024', 'Scaling Ethereum 2024', 'ETHGlobal Sydney', 'ETHGlobal Brussels', 'StarkHack', 'HackFS 2024', 'Frameworks', 'ETHGlobal London', 'LFGHO', 'Circuit Breaker', 'ETHIndia 2023', 'ETHOnline 2023', 'ETHGlobal Istanbul', 'HackFS 2023', 'Scaling Ethereum 2023', 'ETHGlobal New York', 'Superhack', 'ETHGlobal Paris', 'Autonomous Worlds', 'ETHGlobal Lisbon', 'ETHGlobal Waterloo', 'ETHIndia 2022', 'ETHGlobal Tokyo', 'FVM Space Warp', 'Hack FEVM', 'ETHSanFrancisco 2022', 'ETHBogotá', 'ETHOnline 2022', 'ETHMexico', 'Metabolism', 'HackFS 2022', 'ETHNewYork 2022', 'ETHAmsterdam', 'DAOHacks', 'LFGrow', 'BuildQuest', 'Road to Web3', 'NFTHack 2022', 'Web3Jam', 'UniCode', 'ETHOnline 2021', 'HackFS 2021', 'HackMoney 2021', 'Web3 Weekend', 'Scaling Ethereum', 'MarketMake', 'NFTHack', 'ETHOnline', 'HackFS', 'HackMoney']
 
 export const allPrizes = [
     "0x",
@@ -236,6 +236,12 @@ export const allPrizes = [
 ];
 
 export const eventDisplayNames: { [key: string]: string } = {
+    'ETHGlobal Prague': 'Prague \'25',
+    'ETHGlobal Taipei': 'Taipei \'25',
+    'ETHGlobal Trifecta - Trusted Execution Environments': 'Trifecta - TEE',
+    'ETHGlobal Trifecta - Zero Knowledge': 'Trifecta - ZK',
+    'ETHGlobal Trifecta - Agents': 'Trifecta - Agents',
+    'Agentic Ethereum': 'Agentic Ethereum',
     'ETHGlobal Bangkok': 'Bangkok \'24',
     'ETHGlobal San Francisco': 'SF \'24',
     'ETHGlobal Singapore': 'Singapore \'24',
