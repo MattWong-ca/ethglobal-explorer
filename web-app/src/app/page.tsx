@@ -131,7 +131,9 @@ export default function Home() {
           >
             <option value="">All Events</option>
             {allEvents.map((event, index) => (
-              <option key={index} value={event}>{event}</option>
+              <option key={index} value={event}>
+                {eventDisplayNames[event] || event}
+              </option>
             ))}
           </select>
           <select
