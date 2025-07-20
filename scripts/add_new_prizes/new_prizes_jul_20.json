@@ -1,0 +1,134 @@
+{
+  "prizes": [
+    {
+      "name": "Autonome",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/rjvrp/square-logo/default.png",
+      "event": "agents"
+    },
+    {
+      "name": "EigenLayer",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/1bo7r/square-logo/default.png",
+      "event": "agents"
+    },
+    {
+      "name": "Gaia and Collab.Land",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/0bbsf/square-logo/default.png",
+      "event": "agents"
+    },
+    {
+      "name": "Warden Protocol",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/h8evx/square-logo/default.png",
+      "event": "agents"
+    },
+    {
+      "name": "OpSec",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/k4yh0/square-logo/default.png",
+      "event": "agents"
+    },
+    {
+      "name": "Crestal Network",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/0c8h1/square-logo/default.png",
+      "event": "agents"
+    },
+    {
+      "name": "AWS",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/h8ioc/square-logo/default.png",
+      "event": "agents"
+    },
+    {
+      "name": "Recall Network",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/rx0vc/square-logo/default.png",
+      "event": "trifecta"
+    },
+    {
+      "name": "Aztec",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/a8pnr/square-logo/default.png",
+      "event": "trifecta"
+    },
+    {
+      "name": "Succinct",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/4prha/square-logo/default.png",
+      "event": "trifecta"
+    },
+    {
+      "name": "Autonome",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/ojcfw/square-logo/default.png",
+      "event": "trifecta"
+    },
+    {
+      "name": "0G",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/g8xu4/square-logo/default.png",
+      "event": "trifecta"
+    },
+    {
+      "name": "t1 Protocol",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/mv86d/square-logo/default.png",
+      "event": "trifecta"
+    },
+    {
+      "name": "ZK Email",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/chrgb/square-logo/default.png",
+      "event": "trifecta"
+    },
+    {
+      "name": "Nodit",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/dwrg7/square-logo/default.png",
+      "event": "taipei"
+    },
+    {
+      "name": "HashKey Chain",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/6tfor/square-logo/default.png",
+      "event": "taipei"
+    },
+    {
+      "name": "Citrea",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/0wyck/square-logo/default.png",
+      "event": "taipei"
+    },
+    {
+      "name": "Self Protocol",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/ipmya/square-logo/default.png",
+      "event": "taipei"
+    },
+    {
+      "name": "Saga",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/xy3ks/square-logo/default.png",
+      "event": "taipei"
+    },
+    {
+      "name": "Metal",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/t2nc8/square-logo/default.png",
+      "event": "taipei"
+    },
+    {
+      "name": "Yellow",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/5wcw4/square-logo/default.png",
+      "event": "prague"
+    },
+    {
+      "name": "Beraborrow",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/zyaqr/square-logo/default.png",
+      "event": "prague"
+    },
+    {
+      "name": "Hardhat",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/ya99k/square-logo/default.png",
+      "event": "prague"
+    },
+    {
+      "name": "Artificial Superintelligence Alliance",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/pjq8a/square-logo/default.png",
+      "event": "cannes"
+    },
+    {
+      "name": "Ronin",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/1ob9r/square-logo/default.png",
+      "event": "cannes"
+    },
+    {
+      "name": "katana",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/rpz6h/square-logo/default.png",
+      "event": "cannes"
+    }
+  ]
+}
