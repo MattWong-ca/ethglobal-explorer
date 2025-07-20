@@ -27,7 +27,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState(initialParams.get('q') || '');
-  const [selectedEvent, setSelectedEvent] = useState(initialParams.get('event') || '');
+  const [selectedEvent, setSelectedEvent] = useState(initialParams.get('event') || 'ETHGlobal Prague');
   const [selectedPrize, setSelectedPrize] = useState(initialParams.get('prize') || '');
   const [selectedTag, setSelectedTag] = useState(initialParams.get('tag') || '');
   const itemsPerPage = 100;
