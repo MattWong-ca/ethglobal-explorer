@@ -74,7 +74,7 @@ export async function GET(request: Request) {
         project_prizes(
           prizes(name, img_url)
         )
-      `);
+      `).order('id', { ascending: false });
 
         let countQuery = supabase
             .from('projects')
