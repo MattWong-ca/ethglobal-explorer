@@ -260,6 +260,7 @@ export const allPrizes = [
 ];
 
 export const eventDisplayNames: { [key: string]: string } = {
+    'ETHGlobal Cannes': 'Cannes \'25',
     'ETHGlobal Prague': 'Prague \'25',
     'ETHGlobal Taipei': 'Taipei \'25',
     'ETHGlobal Trifecta - Trusted Execution Environments': 'Trifecta - TEE',
