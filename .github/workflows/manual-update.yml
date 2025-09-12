@@ -1,0 +1,280 @@
+name: 🎛️ Manual Data Update
+
+on:
+  workflow_dispatch:
+    inputs:
+      scripts:
+        description: 'Scripts to run (comma-separated)'
+        required: true
+        default: '02_scrape_projects.py,03_upload_projects.py'
+        type: string
+      
+      environment:
+        description: 'Environment to run against'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+          - development
+      
+      notify_on_completion:
+        description: 'Send notification when complete'
+        required: false
+        default: true
+        type: boolean
+        
+      debug_mode:
+        description: 'Enable debug logging'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  validate-inputs:
+    runs-on: ubuntu-latest
+    outputs:
+      scripts_list: ${{ steps.parse.outputs.scripts_list }}
+      script_names: ${{ steps.parse.outputs.script_names }}
+    steps:
+      - name: 📋 Parse and validate script inputs
+        id: parse
+        run: |
+          # Parse comma-separated scripts
+          SCRIPTS="${{ github.event.inputs.scripts }}"
+          IFS=',' read -ra SCRIPT_ARRAY <<< "$SCRIPTS"
+          
+          # Validate scripts exist in allowed list
+          ALLOWED_SCRIPTS=(
+            "01_upload_prizes.py"
+            "02_scrape_projects.py" 
+            "03_upload_projects.py"
+            "04a_upload_hackathons.py"
+            "05_scrape_hackathons.py"
+          )
+          
+          VALID_SCRIPTS=()
+          SCRIPT_NAMES=()
+          
+          for script in "${SCRIPT_ARRAY[@]}"; do
+            script=$(echo "$script" | xargs)  # Trim whitespace
+            
+            # Check if script is in allowed list
+            if [[ " ${ALLOWED_SCRIPTS[@]} " =~ " ${script} " ]]; then
+              VALID_SCRIPTS+=("$script")
+              # Extract readable name
+              case "$script" in
+                "01_upload_prizes.py") SCRIPT_NAMES+=("Upload Prizes") ;;
+                "02_scrape_projects.py") SCRIPT_NAMES+=("Scrape Projects") ;;
+                "03_upload_projects.py") SCRIPT_NAMES+=("Upload Projects") ;;
+                "04a_upload_hackathons.py") SCRIPT_NAMES+=("Upload Hackathons") ;;
+                "05_scrape_hackathons.py") SCRIPT_NAMES+=("Scrape Hackathons") ;;
+              esac
+            else
+              echo "❌ Invalid script: $script"
+              exit 1
+            fi
+          done
+          
+          if [ ${#VALID_SCRIPTS[@]} -eq 0 ]; then
+            echo "❌ No valid scripts provided"
+            exit 1
+          fi
+          
+          # Output for next job
+          printf -v SCRIPTS_JSON '%s\n' "${VALID_SCRIPTS[@]}" | jq -R . | jq -s .
+          printf -v NAMES_JSON '%s\n' "${SCRIPT_NAMES[@]}" | jq -R . | jq -s .
+          
+          echo "scripts_list=$SCRIPTS_JSON" >> $GITHUB_OUTPUT
+          echo "script_names=$NAMES_JSON" >> $GITHUB_OUTPUT
+          
+          echo "✅ Validated scripts: ${VALID_SCRIPTS[*]}"
+
+  manual-update:
+    needs: validate-inputs
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        script: ${{ fromJson(needs.validate-inputs.outputs.scripts_list) }}
+    
+    steps:
+      - name: 📥 Checkout repository  
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 🏗️ Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser chromium-chromedriver jq
+          cd scripts
+          pip install -r requirements.txt
+
+      - name: 🔧 Configure environment
+        run: |
+          echo "CHROME_BINARY_PATH=/usr/bin/chromium-browser" >> $GITHUB_ENV
+          echo "CHROMEDRIVER_PATH=/usr/bin/chromedriver" >> $GITHUB_ENV
+          
+          # Set debug mode if requested
+          if [ "${{ github.event.inputs.debug_mode }}" = "true" ]; then
+            echo "DEBUG=1" >> $GITHUB_ENV
+            echo "🐛 Debug mode enabled"
+          fi
+
+      - name: 🎯 Run script - ${{ matrix.script }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          cd scripts
+          
+          echo "🚀 Running ${{ matrix.script }}..."
+          START_TIME=$(date +%s)
+          
+          # Run the script with timeout
+          timeout 7200 python "${{ matrix.script }}" || EXIT_CODE=$?
+          
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          
+          echo "SCRIPT_DURATION=$DURATION" >> $GITHUB_ENV
+          echo "SCRIPT_NAME=${{ matrix.script }}" >> $GITHUB_ENV
+          
+          if [ ${EXIT_CODE:-0} -eq 124 ]; then
+            echo "❌ Script timed out after 2 hours"
+            exit 1
+          elif [ ${EXIT_CODE:-0} -ne 0 ]; then
+            echo "❌ Script failed with exit code ${EXIT_CODE:-0}"
+            exit ${EXIT_CODE:-1}
+          else
+            echo "✅ Script completed successfully in ${DURATION}s"
+          fi
+
+      - name: 📊 Collect script metrics
+        if: always()
+        run: |
+          cd scripts
+          
+          # Count records based on script type
+          case "${{ matrix.script }}" in
+            "02_scrape_projects.py"|"03_upload_projects.py")
+              if [ -f "ethglobal_projects.json" ]; then
+                RECORDS=$(jq '.projects | length' ethglobal_projects.json 2>/dev/null || echo 0)
+                echo "RECORDS_PROCESSED=$RECORDS" >> $GITHUB_ENV
+                echo "RECORD_TYPE=projects" >> $GITHUB_ENV
+              fi
+              ;;
+            "05_scrape_hackathons.py"|"04a_upload_hackathons.py")
+              if [ -f "all_hackathons.json" ]; then
+                RECORDS=$(jq '.hackathons | length' all_hackathons.json 2>/dev/null || echo 0)
+                echo "RECORDS_PROCESSED=$RECORDS" >> $GITHUB_ENV
+                echo "RECORD_TYPE=hackathons" >> $GITHUB_ENV
+              fi
+              ;;
+            *)
+              echo "RECORDS_PROCESSED=0" >> $GITHUB_ENV
+              echo "RECORD_TYPE=unknown" >> $GITHUB_ENV
+              ;;
+          esac
+
+      - name: 💾 Upload artifacts if failed
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: failed-${{ matrix.script }}-${{ github.run_number }}
+          path: |
+            scripts/*.json
+            scripts/*.log
+          retention-days: 3
+
+  notify:
+    needs: [validate-inputs, manual-update]
+    runs-on: ubuntu-latest
+    if: always() && github.event.inputs.notify_on_completion == 'true'
+    
+    steps:
+      - name: 📊 Collect job results
+        run: |
+          # Determine overall status
+          if [ "${{ needs.manual-update.result }}" = "success" ]; then
+            echo "OVERALL_STATUS=success" >> $GITHUB_ENV
+            echo "STATUS_EMOJI=✅" >> $GITHUB_ENV
+            echo "COLOR=3066993" >> $GITHUB_ENV
+          else
+            echo "OVERALL_STATUS=failure" >> $GITHUB_ENV  
+            echo "STATUS_EMOJI=❌" >> $GITHUB_ENV
+            echo "COLOR=15158332" >> $GITHUB_ENV
+          fi
+
+      - name: 📢 Send Discord notification
+        if: secrets.DISCORD_WEBHOOK_URL
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          # Create script list for notification
+          SCRIPT_NAMES='${{ needs.validate-inputs.outputs.script_names }}'
+          SCRIPT_LIST=$(echo "$SCRIPT_NAMES" | jq -r '.[]' | paste -sd, -)
+          
+          EMBED='{
+            "embeds": [{
+              "title": "'$STATUS_EMOJI' Manual Data Update",
+              "description": "**Environment:** '${{ github.event.inputs.environment }}'\n**Status:** '${{ env.OVERALL_STATUS }}'", 
+              "color": '$COLOR',
+              "fields": [
+                {
+                  "name": "🎛️ Scripts Run",
+                  "value": "'$SCRIPT_LIST'",
+                  "inline": false
+                },
+                {
+                  "name": "⚙️ Configuration", 
+                  "value": "Debug: '${{ github.event.inputs.debug_mode }}'\nTriggered by: '${{ github.actor }}'",
+                  "inline": true
+                },
+                {
+                  "name": "🔗 View Run",
+                  "value": "[GitHub Actions](https://github.com/'$GITHUB_REPOSITORY'/actions/runs/'$GITHUB_RUN_ID')",
+                  "inline": true
+                }
+              ],
+              "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'",
+              "footer": {
+                "text": "ETHGlobal Explorer • Manual Update"
+              }
+            }]
+          }'
+          
+          curl -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "$EMBED"
+
+      - name: ✉️ Send email notification  
+        if: secrets.EMAIL_SMTP_SERVER && secrets.EMAIL_FROM && secrets.EMAIL_TO
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.EMAIL_SMTP_SERVER }}
+          server_port: 587
+          username: ${{ secrets.EMAIL_FROM }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "${{ env.STATUS_EMOJI }} ETHGlobal Manual Update - ${{ env.OVERALL_STATUS }}"
+          from: ETHGlobal Explorer <${{ secrets.EMAIL_FROM }}>
+          to: ${{ secrets.EMAIL_TO }}
+          html_body: |
+            <h2>${{ env.STATUS_EMOJI }} Manual Data Update Complete</h2>
+            <p><strong>Status:</strong> ${{ env.OVERALL_STATUS }}</p>
+            <p><strong>Environment:</strong> ${{ github.event.inputs.environment }}</p>
+            <p><strong>Scripts Run:</strong></p>
+            <ul>
+              ${{ join(fromJson(needs.validate-inputs.outputs.script_names), '</li><li>') }}
+            </ul>
+            <p><strong>Triggered by:</strong> ${{ github.actor }}</p>
+            <p><strong>Debug Mode:</strong> ${{ github.event.inputs.debug_mode }}</p>
+            <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View full details on GitHub</a></p>
