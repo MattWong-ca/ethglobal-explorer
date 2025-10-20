@@ -8,15 +8,25 @@ const MAX_REQUESTS_PER_WINDOW = 1000;
 // Store IP addresses and their request counts
 const ipRequests = new Map<string, { count: number, windowStart: number }>();
 
-// Clean up old entries every hour
-setInterval(() => {
+// Clean up old entries on each request (serverless-friendly)
+function cleanupOldEntries() {
     const now = Date.now();
     for (const [ip, data] of ipRequests.entries()) {
         if (now - data.windowStart > WINDOW_SIZE_IN_MINUTES * 60 * 1000) {
             ipRequests.delete(ip);
         }
     }
-}, 60 * 60 * 1000);
+}
+
+// Validate environment variables
+function validateEnvironment() {
+    if (!process.env.SUPABASE_URL) {
+        throw new Error('SUPABASE_URL environment variable is not set');
+    }
+    if (!process.env.SUPABASE_SERVICE_KEY) {
+        throw new Error('SUPABASE_SERVICE_KEY environment variable is not set');
+    }
+}
 
 const supabase = createClient(
     process.env.SUPABASE_URL!,
@@ -24,33 +34,40 @@ const supabase = createClient(
 );
 
 export async function GET(request: Request) {
-    const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
-    const now = Date.now();
-    
-    // Get or create rate limit data for this IP
-    let rateData = ipRequests.get(ip);
-    if (!rateData || now - rateData.windowStart > WINDOW_SIZE_IN_MINUTES * 60 * 1000) {
-        rateData = { count: 1, windowStart: now };
-        ipRequests.set(ip, rateData);
-    } else {
-        rateData.count++;
-        ipRequests.set(ip, rateData);
+    try {
+        // Validate environment variables
+        validateEnvironment();
         
-        if (rateData.count > MAX_REQUESTS_PER_WINDOW) {
-            const resetTime = new Date(rateData.windowStart + WINDOW_SIZE_IN_MINUTES * 60 * 1000);
-            return NextResponse.json(
-                { error: 'Too many requests' },
-                { 
-                    status: 429,
-                    headers: {
-                        'X-RateLimit-Limit': MAX_REQUESTS_PER_WINDOW.toString(),
-                        'X-RateLimit-Remaining': '0',
-                        'X-RateLimit-Reset': resetTime.getTime().toString(),
+        // Clean up old rate limit entries
+        cleanupOldEntries();
+        
+        const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
+        const now = Date.now();
+        
+        // Get or create rate limit data for this IP
+        let rateData = ipRequests.get(ip);
+        if (!rateData || now - rateData.windowStart > WINDOW_SIZE_IN_MINUTES * 60 * 1000) {
+            rateData = { count: 1, windowStart: now };
+            ipRequests.set(ip, rateData);
+        } else {
+            rateData.count++;
+            ipRequests.set(ip, rateData);
+            
+            if (rateData.count > MAX_REQUESTS_PER_WINDOW) {
+                const resetTime = new Date(rateData.windowStart + WINDOW_SIZE_IN_MINUTES * 60 * 1000);
+                return NextResponse.json(
+                    { error: 'Too many requests' },
+                    { 
+                        status: 429,
+                        headers: {
+                            'X-RateLimit-Limit': MAX_REQUESTS_PER_WINDOW.toString(),
+                            'X-RateLimit-Remaining': '0',
+                            'X-RateLimit-Reset': resetTime.getTime().toString(),
+                        }
                     }
-                }
-            );
+                );
+            }
         }
-    }
 
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -87,9 +104,12 @@ export async function GET(request: Request) {
             totalCount: count
         });
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error in events API:', error);
         return NextResponse.json(
-            { error: 'Internal Server Error' },
+            { 
+                error: 'Internal Server Error',
+                message: error instanceof Error ? error.message : 'Unknown error'
+            },
             { status: 500 }
         );
     }
