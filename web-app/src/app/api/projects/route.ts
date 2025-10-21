@@ -151,4 +151,14 @@ export async function GET(request: Request) {
             { status: 500 }
         );
     }
+    } catch (error) {
+        console.error('Error in projects API:', error);
+        return NextResponse.json(
+            { 
+                error: 'Internal Server Error',
+                message: error instanceof Error ? error.message : 'Unknown error'
+            },
+            { status: 500 }
+        );
+    }
 }
