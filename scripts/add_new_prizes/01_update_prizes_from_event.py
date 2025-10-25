@@ -138,7 +138,7 @@ def update_prizes_from_multiple_events(event_slugs, delay_seconds=3):
     
     # Save all new prizes to a combined JSON file
     if all_new_prizes:
-        filename = f'new_prizes_multiple_events.json'
+        filename = f'new_prizes_oct_25.json'
         save_new_prizes_to_json(all_new_prizes, filename)
         
         print(f"\n{'='*50}")
@@ -155,11 +155,8 @@ def update_prizes_from_multiple_events(event_slugs, delay_seconds=3):
 if __name__ == "__main__":
     # Example usage for multiple events:
     event_slugs = [
-        "agents",
-        "trifecta", 
-        "taipei",
-        "prague",
-        "cannes",
+        "unite",
+        "newyork2025", 
         # Add more event slugs here
     ]
     

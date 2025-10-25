@@ -1,0 +1,34 @@
+{
+  "prizes": [
+    {
+      "name": "Etherlink",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/ky7kr/square-logo/default.png",
+      "event": "unite"
+    },
+    {
+      "name": "Stellar",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/7dhfm/square-logo/default.png",
+      "event": "unite"
+    },
+    {
+      "name": "PayPal USD",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/aezzh/square-logo/default.png",
+      "event": "newyork2025"
+    },
+    {
+      "name": "Gemini",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/uauyx/square-logo/default.png",
+      "event": "newyork2025"
+    },
+    {
+      "name": "Fern",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/i0wqk/square-logo/default.png",
+      "event": "newyork2025"
+    },
+    {
+      "name": "Nora",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/o599i/square-logo/default.png",
+      "event": "newyork2025"
+    }
+  ]
+}

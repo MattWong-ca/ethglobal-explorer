@@ -14,7 +14,7 @@ supabase = create_client(
     os.getenv('SUPABASE_SERVICE_KEY')
 )
 
-def add_new_prizes(filename='new_prizes_multiple_events.json'):
+def add_new_prizes(filename='new_prizes_oct_25.json'):
     """Upload new prizes from JSON file to Supabase"""
     print(f"Uploading prizes from: {filename}")
     
