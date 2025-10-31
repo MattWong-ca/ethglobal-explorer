@@ -1,0 +1,250 @@
+name: 🔄 ETHGlobal Data Update
+
+on:
+  # Scheduled runs
+  schedule:
+    # Full refresh: Monthly on 1st at 2 AM UTC
+    - cron: '0 2 1 * *'
+      # Hackathon discovery: Weekly on Sundays at 1 AM UTC  
+    - cron: '0 1 * * 0'
+      # Project updates: Daily at 3 AM UTC
+    - cron: '0 3 * * *'
+  
+  # Manual trigger with workflow options
+  workflow_dispatch:
+    inputs:
+      workflow_type:
+        description: 'Type of workflow to run'
+        required: true
+        default: 'project_updates'
+        type: choice
+        options:
+          - full_refresh
+          - hackathon_discovery
+          - project_updates
+      
+      notify_discord:
+        description: 'Send Discord notification on completion'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  determine-workflow:
+    runs-on: ubuntu-latest
+    outputs:
+      workflow_type: ${{ steps.determine.outputs.workflow_type }}
+      should_notify: ${{ steps.determine.outputs.should_notify }}
+    steps:
+      - name: Determine workflow type
+        id: determine
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "workflow_type=${{ github.event.inputs.workflow_type }}" >> $GITHUB_OUTPUT
+            echo "should_notify=${{ github.event.inputs.notify_discord }}" >> $GITHUB_OUTPUT
+          else
+            # Determine based on schedule
+            case "${{ github.event.schedule }}" in
+              "0 2 1 * *")
+                echo "workflow_type=full_refresh" >> $GITHUB_OUTPUT
+                echo "should_notify=true" >> $GITHUB_OUTPUT
+                ;;
+              "0 1 * * 0")
+                echo "workflow_type=hackathon_discovery" >> $GITHUB_OUTPUT
+                echo "should_notify=false" >> $GITHUB_OUTPUT
+                ;;
+              "0 3 * * *")
+                echo "workflow_type=project_updates" >> $GITHUB_OUTPUT
+                echo "should_notify=false" >> $GITHUB_OUTPUT
+                ;;
+              *)
+                echo "workflow_type=project_updates" >> $GITHUB_OUTPUT
+                echo "should_notify=false" >> $GITHUB_OUTPUT
+                ;;
+            esac
+          fi
+
+  update-data:
+    needs: determine-workflow
+    runs-on: ubuntu-latest
+    timeout-minutes: 240  # 4 hours max
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 🏗️ Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            chromium-browser \
+            chromium-chromedriver
+          
+          # Verify installations
+          chromium-browser --version
+          chromedriver --version
+
+      - name: 📦 Install Python dependencies  
+        run: |
+          cd scripts
+          pip install -r requirements.txt
+
+      - name: 🔧 Configure Chrome for headless operation
+        run: |
+          # Set Chrome binary path for Selenium
+          echo "CHROME_BINARY_PATH=/usr/bin/chromium-browser" >> $GITHUB_ENV
+          echo "CHROMEDRIVER_PATH=/usr/bin/chromedriver" >> $GITHUB_ENV
+
+      - name: 🎯 Run workflow - ${{ needs.determine-workflow.outputs.workflow_type }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          WORKFLOW_TYPE: ${{ needs.determine-workflow.outputs.workflow_type }}
+        run: |
+          cd scripts
+          
+          # Create start timestamp
+          START_TIME=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          echo "START_TIME=$START_TIME" >> $GITHUB_ENV
+          echo "🚀 Starting $WORKFLOW_TYPE workflow at $START_TIME"
+          
+          # Run the appropriate workflow
+          case "$WORKFLOW_TYPE" in
+            "full_refresh")
+              echo "🔄 Running full data refresh..."
+              python 05_scrape_hackathons.py
+              python 01_upload_prizes.py  
+              python 02_scrape_projects.py
+              python 03_upload_projects.py
+              ;;
+            "hackathon_discovery")
+              echo "🔍 Running hackathon discovery..."
+              python 05_scrape_hackathons.py
+              if [ -f "all_hackathons.json" ] && [ -s "all_hackathons.json" ]; then
+                python 04a_upload_hackathons.py
+              fi
+              ;;
+            "project_updates")
+              echo "📊 Running project updates..."
+              python 02_scrape_projects.py
+              if [ -f "ethglobal_projects.json" ] && [ -s "ethglobal_projects.json" ]; then
+                python 03_upload_projects.py
+              fi
+              ;;
+          esac
+          
+          # Create end timestamp and calculate duration
+          END_TIME=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          echo "END_TIME=$END_TIME" >> $GITHUB_ENV
+          
+          DURATION_SECONDS=$(($(date -d "$END_TIME" +%s) - $(date -d "$START_TIME" +%s)))
+          DURATION_MINUTES=$((DURATION_SECONDS / 60))
+          echo "DURATION_MINUTES=$DURATION_MINUTES" >> $GITHUB_ENV
+          
+          echo "✅ Workflow completed at $END_TIME (took ${DURATION_MINUTES}m)"
+
+      - name: 📊 Collect workflow statistics
+        if: always()
+        run: |
+          cd scripts
+          
+          # Count records in data files
+          HACKATHONS_COUNT=0
+          PROJECTS_COUNT=0
+          
+          if [ -f "all_hackathons.json" ]; then
+            HACKATHONS_COUNT=$(jq '.hackathons | length' all_hackathons.json 2>/dev/null || echo 0)
+          fi
+          
+          if [ -f "ethglobal_projects.json" ]; then  
+            PROJECTS_COUNT=$(jq '.projects | length' ethglobal_projects.json 2>/dev/null || echo 0)
+          fi
+          
+          echo "HACKATHONS_COUNT=$HACKATHONS_COUNT" >> $GITHUB_ENV
+          echo "PROJECTS_COUNT=$PROJECTS_COUNT" >> $GITHUB_ENV
+          
+          echo "📈 Statistics:"
+          echo "  - Hackathons processed: $HACKATHONS_COUNT"  
+          echo "  - Projects processed: $PROJECTS_COUNT"
+          echo "  - Duration: ${DURATION_MINUTES}m"
+
+      - name: 💾 Upload artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: debug-logs-${{ github.run_number }}
+          path: |
+            scripts/*.json
+            scripts/*.log
+          retention-days: 7
+
+      - name: 📢 Send Discord notification
+        if: always() && needs.determine-workflow.outputs.should_notify == 'true' && secrets.DISCORD_WEBHOOK_URL
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          WORKFLOW_TYPE: ${{ needs.determine-workflow.outputs.workflow_type }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          # Determine status emoji and color
+          if [ "$JOB_STATUS" = "success" ]; then
+            STATUS_EMOJI="✅"
+            COLOR=3066993  # Green
+            STATUS_TEXT="Success"
+          else
+            STATUS_EMOJI="❌" 
+            COLOR=15158332  # Red
+            STATUS_TEXT="Failed"
+          fi
+          
+          # Create Discord embed
+          EMBED='{
+            "embeds": [{
+              "title": "'$STATUS_EMOJI' ETHGlobal Data Update",
+              "description": "Workflow: **'$WORKFLOW_TYPE'**\nStatus: **'$STATUS_TEXT'**",
+              "color": '$COLOR',
+              "fields": [
+                {
+                  "name": "📊 Statistics",
+                  "value": "Hackathons: '$HACKATHONS_COUNT'\nProjects: '$PROJECTS_COUNT'\nDuration: '$DURATION_MINUTES' minutes",
+                  "inline": true
+                },
+                {
+                  "name": "⏰ Timing", 
+                  "value": "Started: '$START_TIME'\nCompleted: '$END_TIME'",
+                  "inline": true
+                },
+                {
+                  "name": "🔗 Details",
+                  "value": "[View Run](https://github.com/'$GITHUB_REPOSITORY'/actions/runs/'$GITHUB_RUN_ID')",
+                  "inline": false
+                }
+              ],
+              "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'",
+              "footer": {
+                "text": "ETHGlobal Explorer • GitHub Actions"
+              }
+            }]
+          }'
+          
+          # Send to Discord
+          curl -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "$EMBED"
+
+  cleanup:
+    needs: [determine-workflow, update-data]
+    runs-on: ubuntu-latest  
+    if: always()
+    steps:
+      - name: 🧹 Workflow cleanup
+        run: |
+          echo "🧹 Cleaning up workflow run ${{ github.run_number }}"
+          echo "Workflow type: ${{ needs.determine-workflow.outputs.workflow_type }}"
+          echo "Status: ${{ needs.update-data.result }}"
+          echo "Duration: ${{ env.DURATION_MINUTES }} minutes"
