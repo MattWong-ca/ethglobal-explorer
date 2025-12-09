@@ -1,0 +1,292 @@
+name: 🩺 System Health Check
+
+on:
+  schedule:
+    # Daily health check at 12 PM UTC
+    - cron: '0 12 * * *'
+  
+  workflow_dispatch:
+    inputs:
+      check_type:
+        description: 'Type of health check'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - database
+          - scraping
+          - dependencies
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 🏗️ Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser chromium-chromedriver jq
+          cd scripts
+          pip install -r requirements.txt
+
+      - name: 🔍 Database connectivity check
+        if: github.event.inputs.check_type == 'database' || github.event.inputs.check_type == 'full' || github.event_name == 'schedule'
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          echo "🔍 Testing database connection..."
+          
+          python3 << 'EOF'
+          import os
+          from supabase import create_client
+          import sys
+          
+          try:
+              supabase = create_client(
+                  os.getenv('SUPABASE_URL'),
+                  os.getenv('SUPABASE_SERVICE_KEY')
+              )
+              
+              # Test basic connectivity
+              result = supabase.table('projects').select('id').limit(1).execute()
+              print(f"✅ Database connection successful")
+              print(f"✅ Projects table accessible")
+              
+              # Test other tables
+              tables = ['events', 'prizes', 'project_prizes']
+              for table in tables:
+                  try:
+                      result = supabase.table(table).select('*').limit(1).execute()
+                      print(f"✅ Table '{table}' accessible")
+                  except Exception as e:
+                      print(f"⚠️  Table '{table}' issue: {e}")
+              
+          except Exception as e:
+              print(f"❌ Database connection failed: {e}")
+              sys.exit(1)
+          EOF
+          
+          echo "DB_HEALTH=✅ Healthy" >> $GITHUB_ENV
+
+      - name: 🌐 Web scraping capability check
+        if: github.event.inputs.check_type == 'scraping' || github.event.inputs.check_type == 'full' || github.event_name == 'schedule'
+        run: |
+          echo "🌐 Testing web scraping capabilities..."
+          
+          python3 << 'EOF'
+          from selenium import webdriver
+          from selenium.webdriver.common.by import By
+          from selenium.webdriver.support.ui import WebDriverWait
+          from selenium.webdriver.support import expected_conditions as EC
+          import sys
+          import time
+          
+          try:
+              # Configure Chrome for headless operation
+              options = webdriver.ChromeOptions()
+              options.add_argument('--headless')
+              options.add_argument('--no-sandbox')
+              options.add_argument('--disable-dev-shm-usage')
+              options.add_argument('--disable-gpu')
+              options.add_argument('--disable-images')
+              
+              driver = webdriver.Chrome(options=options)
+              driver.implicitly_wait(10)
+              
+              # Test ETHGlobal homepage access
+              print("🔍 Testing ETHGlobal homepage access...")
+              driver.get("https://ethglobal.com")
+              
+              # Wait for page to load
+              WebDriverWait(driver, 20).until(
+                  lambda d: d.execute_script("return document.readyState") == "complete"
+              )
+              
+              title = driver.title
+              if "ETHGlobal" in title:
+                  print(f"✅ Homepage accessible: {title}")
+              else:
+                  print(f"⚠️  Unexpected homepage title: {title}")
+              
+              # Test hackathons page
+              print("🔍 Testing hackathons page...")
+              driver.get("https://ethglobal.com/events/hackathons")
+              
+              WebDriverWait(driver, 20).until(
+                  lambda d: d.execute_script("return document.readyState") == "complete"
+              )
+              
+              # Look for hackathon elements
+              hackathon_links = driver.find_elements(By.CSS_SELECTOR, 'a[href*="/events/"]')
+              print(f"✅ Found {len(hackathon_links)} hackathon elements")
+              
+              # Test showcase page  
+              print("🔍 Testing showcase page...")
+              driver.get("https://ethglobal.com/showcase?page=1")
+              
+              WebDriverWait(driver, 20).until(
+                  lambda d: d.execute_script("return document.readyState") == "complete"
+              )
+              
+              # Look for project elements
+              project_links = driver.find_elements(By.CSS_SELECTOR, 'a[href^="/showcase/"]')
+              print(f"✅ Found {len(project_links)} project elements on page 1")
+              
+              driver.quit()
+              
+              if len(hackathon_links) > 0 and len(project_links) > 0:
+                  print("✅ Web scraping capabilities verified")
+              else:
+                  print("⚠️  Limited scraping capabilities detected")
+                  
+          except Exception as e:
+              print(f"❌ Web scraping test failed: {e}")
+              sys.exit(1)
+          EOF
+          
+          echo "SCRAPING_HEALTH=✅ Healthy" >> $GITHUB_ENV
+
+      - name: 📦 Dependencies check
+        if: github.event.inputs.check_type == 'dependencies' || github.event.inputs.check_type == 'full' || github.event_name == 'schedule'
+        run: |
+          echo "📦 Checking Python dependencies..."
+          
+          python3 << 'EOF'
+          import sys
+          
+          required_packages = [
+              'selenium',
+              'beautifulsoup4', 
+              'supabase',
+              'python-dotenv'
+          ]
+          
+          missing_packages = []
+          outdated_packages = []
+          
+          for package in required_packages:
+              try:
+                  __import__(package.replace('-', '_'))
+                  print(f"✅ {package} available")
+              except ImportError:
+                  missing_packages.append(package)
+                  print(f"❌ {package} missing")
+          
+          if missing_packages:
+              print(f"❌ Missing packages: {', '.join(missing_packages)}")
+              sys.exit(1)
+          else:
+              print("✅ All required packages available")
+          
+          # Check versions
+          import selenium
+          import bs4
+          import supabase
+          
+          print(f"📋 Package versions:")
+          print(f"  - Selenium: {selenium.__version__}")
+          print(f"  - BeautifulSoup4: {bs4.__version__}")
+          print(f"  - Supabase: {supabase.__version__}")
+          EOF
+          
+          echo "DEPS_HEALTH=✅ Healthy" >> $GITHUB_ENV
+
+      - name: 📊 System information
+        run: |
+          echo "📊 System Information:"
+          echo "  - OS: $(uname -a)"
+          echo "  - Python: $(python3 --version)"
+          echo "  - Chrome: $(chromium-browser --version)"
+          echo "  - ChromeDriver: $(chromedriver --version)"
+          echo "  - Disk Space: $(df -h / | tail -1 | awk '{print $4}') available"
+          echo "  - Memory: $(free -h | grep '^Mem:' | awk '{print $7}') available"
+
+      - name: 📈 Generate health report
+        if: always()
+        run: |
+          echo "📈 Health Check Summary" > health_report.txt
+          echo "======================" >> health_report.txt
+          echo "Date: $(date -u)" >> health_report.txt
+          echo "Check Type: ${{ github.event.inputs.check_type || 'scheduled' }}" >> health_report.txt
+          echo "" >> health_report.txt
+          
+          if [ -n "$DB_HEALTH" ]; then
+            echo "Database: $DB_HEALTH" >> health_report.txt
+          fi
+          
+          if [ -n "$SCRAPING_HEALTH" ]; then
+            echo "Scraping: $SCRAPING_HEALTH" >> health_report.txt  
+          fi
+          
+          if [ -n "$DEPS_HEALTH" ]; then
+            echo "Dependencies: $DEPS_HEALTH" >> health_report.txt
+          fi
+          
+          echo "" >> health_report.txt
+          echo "Runner: ${{ runner.os }} on GitHub Actions" >> health_report.txt
+          
+          cat health_report.txt
+
+      - name: 💾 Upload health report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: health-report-${{ github.run_number }}
+          path: health_report.txt
+          retention-days: 30
+
+      - name: 🚨 Send alert on failure
+        if: failure() && secrets.DISCORD_WEBHOOK_URL
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          EMBED='{
+            "embeds": [{
+              "title": "🚨 Health Check Failed",
+              "description": "ETHGlobal Explorer system health check has failed",
+              "color": 15158332,
+              "fields": [
+                {
+                  "name": "Check Type",
+                  "value": "'${{ github.event.inputs.check_type || 'full' }}'",
+                  "inline": true
+                },
+                {
+                  "name": "Failure Time", 
+                  "value": "'$(date -u)'",
+                  "inline": true
+                },
+                {
+                  "name": "Action Required",
+                  "value": "Review the [failed run](https://github.com/'$GITHUB_REPOSITORY'/actions/runs/'$GITHUB_RUN_ID') and address any issues",
+                  "inline": false
+                }
+              ],
+              "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'",
+              "footer": {
+                "text": "ETHGlobal Explorer • Health Check"
+              }
+            }]
+          }'
+          
+          curl -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "$EMBED"
+
+      - name: ✅ Health check complete  
+        if: success()
+        run: |
+          echo "✅ All health checks passed!"
+          echo "System is operating normally."
