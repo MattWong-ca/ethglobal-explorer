@@ -1,0 +1,69 @@
+{
+  "prizes": [
+    {
+      "name": "Polygon",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/idedu/square-logo/default.png",
+      "event": "newdelhi"
+    },
+    {
+      "name": "Filecoin",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/bnkyu/square-logo/default.png",
+      "event": "newdelhi"
+    },
+    {
+      "name": "Artificial Superintelligence Alliance",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/7t8af/square-logo/default.png",
+      "event": "newdelhi"
+    },
+    {
+      "name": "Kadena",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/4vswn/square-logo/default.png",
+      "event": "newdelhi"
+    },
+    {
+      "name": "Integra",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/nkpbs/square-logo/default.png",
+      "event": "newdelhi"
+    },
+    {
+      "name": "Arcology",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/nzsrv/square-logo/default.png",
+      "event": "ethonline2025"
+    },
+    {
+      "name": "EVVM",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/gatm1/square-logo/default.png",
+      "event": "ethonline2025"
+    },
+    {
+      "name": "Symbiotic",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/y3oj0/square-logo/default.png",
+      "event": "buenosaires"
+    },
+    {
+      "name": "Octav",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/qk38m/square-logo/default.png",
+      "event": "buenosaires"
+    },
+    {
+      "name": "Anchorage Digital",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/hs9t7/square-logo/default.png",
+      "event": "buenosaires"
+    },
+    {
+      "name": "sqd",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/tbi2y/square-logo/default.png",
+      "event": "buenosaires"
+    },
+    {
+      "name": "Espresso",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/vpq6s/square-logo/default.png",
+      "event": "buenosaires"
+    },
+    {
+      "name": "Babylon Labs",
+      "img_url": "https://ethglobal.b-cdn.net/organizations/6162g/square-logo/default.png",
+      "event": "buenosaires"
+    }
+  ]
+}
