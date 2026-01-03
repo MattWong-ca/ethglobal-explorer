@@ -37,13 +37,13 @@ def scrape_ethglobal_showcase():
     
     driver.implicitly_wait(5)  # Increased wait time
     
-    total_pages = 20
+    total_pages = 54
     total_projects = 0
     projects = []  # List to store all project data
     
-    for page in range(1, total_pages):
+    for page in range(1, total_pages + 1):
         print(f"\n=== Processing page {page}/{total_pages} ===")
-        driver.get(f"https://ethglobal.com/showcase?page={page}")
+        driver.get(f"https://ethglobal.com/showcase?events=buenosaires%2Cethonline2025%2Cnewdelhi&page={page}")
         
         # Add a small delay to let the page load
         time.sleep(2)
@@ -149,7 +149,7 @@ def scrape_ethglobal_showcase():
     with open('new_delhi_online_arg_projects.json', 'w', encoding='utf-8') as f:
         json.dump({'projects': projects}, f, indent=2, ensure_ascii=False)
     
-    print(f"\nScraping complete! Saved {len(projects)} projects to new_cannes_projects.json")
+    print(f"\nScraping complete! Saved {len(projects)} projects to new_delhi_online_arg_projects.json")
 
 if __name__ == "__main__":
     scrape_ethglobal_showcase()
